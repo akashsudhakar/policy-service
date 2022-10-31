@@ -8,9 +8,9 @@ import javax.validation.Valid;
 import javax.validation.constraints.FutureOrPresent;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NonNull;
 
 @Data
 @Builder
@@ -21,7 +21,7 @@ public class PolicyModificationRequest {
 
   @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = Constants.DATE_FORMAT)
   @FutureOrPresent(message = "effectiveDate must be a date in the present or in the future")
-  @NonNull
+  @NotNull(message = "effectiveDate must not be null")
   private Date effectiveDate;
 
   @Valid

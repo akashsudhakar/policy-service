@@ -1,7 +1,7 @@
 # Policy-Service
 This spring boot based project deals with all policy operations.
 
-#Features
+# Features
 Available REST APIs
 - ##### <div id="create_policy_api"/>Create Policy API
   This is the endpoint invoked by client applications to create policy
@@ -185,4 +185,5 @@ POLICY_MAPPING
 
 ## Documentation
 Swagger UI - [Swagger-UI](http://localhost:8080/swagger-ui.html)
+
 API Docs - [API-Docs](http://localhost:8080/v3/api-docs/)

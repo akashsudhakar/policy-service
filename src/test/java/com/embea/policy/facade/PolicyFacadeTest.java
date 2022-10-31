@@ -12,6 +12,7 @@ import com.embea.policy.model.*;
 import com.embea.policy.services.PersonService;
 import com.embea.policy.services.PolicyMappingService;
 import com.embea.policy.services.PolicyService;
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -28,19 +29,20 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class PolicyFacadeTest {
 
   private static final Date CURRENT_DATE = new Date();
+  private static final Date OLD_DATE = new Date(CURRENT_DATE.getTime() - 432000000);
   private static final Date START_DATE = new Date(CURRENT_DATE.getTime() + 86400000);
   private static final Date UPDATED_DATE = new Date(START_DATE.getTime() + 432000000);
   private static final String FIRST_NAME_1 = "Jane";
   private static final String SECOND_NAME_1 = "Jackson";
-  private static final Double PREMIUM_1 = 12.90;
+  private static final BigDecimal PREMIUM_1 = BigDecimal.valueOf(12.90);
   private static final String FIRST_NAME_2 = "Jack";
   private static final String SECOND_NAME_2 = "Doe";
-  private static final Double PREMIUM_2 = 15.90;
+  private static final BigDecimal PREMIUM_2 = BigDecimal.valueOf(15.90);
   private static final String FIRST_NAME_3 = "Will";
   private static final String SECOND_NAME_3 = "Smith";
-  private static final Double PREMIUM_3 = 12.90;
-  private static final Double TOTAL_PREMIUM = PREMIUM_1 + PREMIUM_2;
-  private static final Double UPDATED_TOTAL_PREMIUM = PREMIUM_1 + PREMIUM_3;
+  private static final BigDecimal PREMIUM_3 = BigDecimal.valueOf(12.90);
+  private static final BigDecimal TOTAL_PREMIUM = BigDecimal.valueOf(28.80);
+  private static final BigDecimal UPDATED_TOTAL_PREMIUM = BigDecimal.valueOf(25.80);
   private static final String POLICY_ID = UUID.randomUUID().toString();
   private static final Long PERSON_ID_1 = 1L;
   private static final Long PERSON_ID_2 = 2L;
@@ -257,13 +259,13 @@ class PolicyFacadeTest {
 
   @Test
   @DisplayName(
-      "Given fetch policy request with valid policy Id "
+      "Given fetch policy request with valid policy Id and request date"
           + "When we try to retrieve policy "
           + "Then policy details returned.")
   void testFetchPolicySuccessScenario() {
     PolicyFetchRequest policyFetchRequest = createPolicyFetchRequest();
     Policy fetchedPolicy = Policy.builder().policyId(POLICY_ID).effectiveDate(START_DATE).build();
-    doReturn(fetchedPolicy).when(policyService).getPolicy(POLICY_ID);
+    doReturn(fetchedPolicy).when(policyService).getPolicy(POLICY_ID, START_DATE);
 
     PolicyMapping policyMapping1 =
         PolicyMapping.builder()
@@ -310,8 +312,8 @@ class PolicyFacadeTest {
   void testFetchPolicySuccessScenarioWithNoRequestDate() {
     PolicyFetchRequest policyFetchRequest = createPolicyFetchRequest();
     policyFetchRequest.setRequestDate(null);
-    Policy fetchedPolicy = Policy.builder().policyId(POLICY_ID).effectiveDate(START_DATE).build();
-    doReturn(fetchedPolicy).when(policyService).getPolicy(POLICY_ID);
+    Policy fetchedPolicy = Policy.builder().policyId(POLICY_ID).effectiveDate(CURRENT_DATE).build();
+    doReturn(fetchedPolicy).when(policyService).getPolicy(eq(POLICY_ID), any(Date.class));
 
     PolicyMapping policyMapping1 =
         PolicyMapping.builder()
@@ -359,7 +361,7 @@ class PolicyFacadeTest {
   void testFetchPolicyThrowsException() {
     PolicyFetchRequest policyFetchRequest = createPolicyFetchRequest();
 
-    doThrow(IllegalArgumentException.class).when(policyService).getPolicy(POLICY_ID);
+    doThrow(IllegalArgumentException.class).when(policyService).getPolicy(POLICY_ID, START_DATE);
 
     assertThrows(
         IllegalArgumentException.class, () -> policyFacade.fetchPolicy(policyFetchRequest));
@@ -367,13 +369,14 @@ class PolicyFacadeTest {
 
   @Test
   @DisplayName(
-      "Given fetch policy request with invalid policy Id "
+      "Given fetch policy request with valid policy Id and old date"
           + "When we try to retrieve policy "
           + "Then throws PolicyNotFoundException back to the caller.")
-  void testFetchPolicyWithInvalidPolicyId() {
+  void testFetchPolicyWithInvalidDate() {
     PolicyFetchRequest policyFetchRequest = createPolicyFetchRequest();
+    policyFetchRequest.setRequestDate(OLD_DATE);
 
-    doReturn(null).when(policyService).getPolicy(POLICY_ID);
+    doReturn(null).when(policyService).getPolicy(POLICY_ID, OLD_DATE);
 
     assertThrows(PolicyNotFoundException.class, () -> policyFacade.fetchPolicy(policyFetchRequest));
   }

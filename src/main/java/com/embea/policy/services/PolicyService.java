@@ -3,6 +3,7 @@ package com.embea.policy.services;
 import com.embea.policy.dto.Policy;
 import com.embea.policy.model.PolicyCreationRequest;
 import com.embea.policy.repository.PolicyRepo;
+import java.util.Date;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,12 @@ public class PolicyService {
 
   public Policy getPolicy(String policyId) {
     return policyRepo.findById(policyId).orElse(null);
+  }
+
+  public Policy getPolicy(String policyId, Date effectiveDate) {
+    return policyRepo
+        .getPolicyByPolicyIdAndEffectiveDateBefore(policyId, effectiveDate)
+        .orElse(null);
   }
 
   private Policy buildPolicyObject(PolicyCreationRequest policyCreationRequest) {

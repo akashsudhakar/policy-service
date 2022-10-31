@@ -6,6 +6,7 @@ import static org.mockito.Mockito.verify;
 
 import com.embea.policy.facade.PolicyFacade;
 import com.embea.policy.model.*;
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -26,15 +27,15 @@ class PolicyControllerTest {
   private static final Date EFFECTIVE_DATE = new Date(START_DATE.getTime() + 86400000);
   private static final String FIRST_NAME_1 = "Jane";
   private static final String SECOND_NAME_1 = "Jackson";
-  private static final Double PREMIUM_1 = 12.90;
+  private static final BigDecimal PREMIUM_1 = BigDecimal.valueOf(12.90);
   private static final String FIRST_NAME_2 = "Jack";
   private static final String SECOND_NAME_2 = "Doe";
-  private static final Double PREMIUM_2 = 15.90;
+  private static final BigDecimal PREMIUM_2 = BigDecimal.valueOf(15.90);
   private static final String FIRST_NAME_3 = "Will";
   private static final String SECOND_NAME_3 = "Smith";
-  private static final Double PREMIUM_3 = 12.90;
-  private static final Double TOTAL_PREMIUM = PREMIUM_1 + PREMIUM_2;
-  private static final Double UPDATED_TOTAL_PREMIUM = TOTAL_PREMIUM + PREMIUM_3;
+  private static final BigDecimal PREMIUM_3 = BigDecimal.valueOf(12.90);
+  private static final BigDecimal TOTAL_PREMIUM = BigDecimal.valueOf(28.80);
+  private static final BigDecimal UPDATED_TOTAL_PREMIUM = BigDecimal.valueOf(25.80);
   private static final String POLICY_ID = UUID.randomUUID().toString();
   private static final Long PERSON_ID_1 = 1L;
   private static final Long PERSON_ID_2 = 2L;
