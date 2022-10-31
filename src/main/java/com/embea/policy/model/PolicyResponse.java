@@ -1,5 +1,6 @@
 package com.embea.policy.model;
 
+import java.math.BigDecimal;
 import java.util.Set;
 import lombok.Data;
 import lombok.experimental.SuperBuilder;
@@ -9,5 +10,5 @@ import lombok.experimental.SuperBuilder;
 public class PolicyResponse {
   private String policyId;
   private Set<InsuredPerson> insuredPersons;
-  private Double totalPremium;
+  private BigDecimal totalPremium;
 }

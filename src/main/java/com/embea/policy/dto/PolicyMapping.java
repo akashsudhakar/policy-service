@@ -1,5 +1,6 @@
 package com.embea.policy.dto;
 
+import java.math.BigDecimal;
 import javax.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -25,5 +26,5 @@ public class PolicyMapping {
   private Long personId;
 
   @Column(name = "premium")
-  private Double premium;
+  private BigDecimal premium;
 }

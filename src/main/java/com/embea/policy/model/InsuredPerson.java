@@ -1,7 +1,9 @@
 package com.embea.policy.model;
 
+import java.math.BigDecimal;
 import java.util.Objects;
 import javax.validation.constraints.DecimalMin;
+import javax.validation.constraints.Digits;
 import javax.validation.constraints.NotBlank;
 import lombok.Builder;
 import lombok.Data;
@@ -18,7 +20,8 @@ public class InsuredPerson implements Comparable<InsuredPerson> {
   private String secondName;
 
   @DecimalMin(value = "0.01", message = "Premium should be greater than 0")
-  private Double premium;
+  @Digits(integer = 10, fraction = 2, message = "Provide valid amount in the format 10.25")
+  private BigDecimal premium;
 
   @Override
   public boolean equals(Object o) {

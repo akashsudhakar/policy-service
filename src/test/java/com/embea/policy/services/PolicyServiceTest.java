@@ -8,6 +8,7 @@ import com.embea.policy.dto.Policy;
 import com.embea.policy.model.InsuredPerson;
 import com.embea.policy.model.PolicyCreationRequest;
 import com.embea.policy.repository.PolicyRepo;
+import java.math.BigDecimal;
 import java.util.*;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -24,10 +25,10 @@ class PolicyServiceTest {
   private static final Date START_DATE = new Date();
   private static final String FIRST_NAME_1 = "Jane";
   private static final String SECOND_NAME_1 = "Jackson";
-  private static final Double PREMIUM_1 = 12.90;
+  private static final BigDecimal PREMIUM_1 = BigDecimal.valueOf(12.90);
   private static final String FIRST_NAME_2 = "Jack";
   private static final String SECOND_NAME_2 = "Doe";
-  private static final Double PREMIUM_2 = 15.90;
+  private static final BigDecimal PREMIUM_2 = BigDecimal.valueOf(15.90);
   private static final String POLICY_ID = UUID.randomUUID().toString();
 
   @Mock private PolicyRepo policyRepo;

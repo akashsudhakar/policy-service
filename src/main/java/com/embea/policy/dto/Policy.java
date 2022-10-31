@@ -2,6 +2,7 @@ package com.embea.policy.dto;
 
 import com.embea.policy.utils.Constants;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import java.math.BigDecimal;
 import java.util.Date;
 import javax.persistence.*;
 import lombok.AllArgsConstructor;
@@ -28,5 +29,5 @@ public class Policy {
   private Date effectiveDate;
 
   @Column(name = "total_premium")
-  private Double totalPremium;
+  private BigDecimal totalPremium;
 }
