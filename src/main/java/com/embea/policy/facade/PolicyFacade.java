@@ -33,9 +33,7 @@ public class PolicyFacade {
    */
   @Transactional
   public PolicyResponse createPolicy(PolicyCreationRequest policyCreationRequest) {
-    log.info(
-        String.format(
-            "Going to create policy with start date %s", policyCreationRequest.getStartDate()));
+    log.info("Going to create policy with start date [{}]", policyCreationRequest.getStartDate());
     Policy createdPolicy = policyService.insertPolicy(policyCreationRequest);
     PolicyCreationResponse policyResponse =
         insertPersonAndMapping(policyCreationRequest, createdPolicy);
@@ -58,6 +56,9 @@ public class PolicyFacade {
    */
   @Transactional
   public PolicyResponse modifyPolicy(PolicyModificationRequest policyModificationRequest) {
+    log.info(
+        "Going to modify policy with effective date [{}]",
+        policyModificationRequest.getEffectiveDate());
     String policyId = policyModificationRequest.getPolicyId();
     Date effectiveDate = policyModificationRequest.getEffectiveDate();
     Policy savedPolicy = policyService.getPolicy(policyId, effectiveDate);
@@ -73,8 +74,16 @@ public class PolicyFacade {
       for (InsuredPerson insuredPerson : policyModificationRequest.getInsuredPersons()) {
         if (insuredPerson.getId() == null) {
           Person storePersonEntry = personService.storePersonEntry(insuredPerson);
+          log.debug(
+              "Created person details for [{}] with id [{}]",
+              insuredPerson.getFirstName(),
+              storePersonEntry.getPersonId());
           insuredPerson.setId(storePersonEntry.getPersonId());
           policyMappingService.storePolicyMapping(policyId, insuredPerson, effectiveDate);
+          log.debug(
+              "Created policy mapping for policy [{}] person [{}]",
+              policyId,
+              storePersonEntry.getPersonId());
         }
         insuredPersons.add(insuredPerson);
         idsPresent.add(insuredPerson.getId());
@@ -88,6 +97,7 @@ public class PolicyFacade {
         }
       }
       policyMappingService.removePersonsFromPolicy(idsToRemove, policyId, effectiveDate);
+      log.debug("Removed [{}] person mappings from policy [{}]", idsToRemove.size(), policyId);
       return buildPolicyModificationResponse(
           policyModificationRequest, insuredPersons, totalPremium);
     }
@@ -106,6 +116,7 @@ public class PolicyFacade {
         policyFetchRequest.getRequestDate() != null
             ? policyFetchRequest.getRequestDate()
             : new Date(Instant.now().toEpochMilli());
+    log.info("Going to fetch policy with request date [{}]", requestDate);
     Policy fetchedPolicy = policyService.getPolicy(policyFetchRequest.getPolicyId(), requestDate);
     if (fetchedPolicy == null) {
       throw new PolicyNotFoundException(
@@ -127,10 +138,18 @@ public class PolicyFacade {
     BigDecimal totalPremium = new BigDecimal("0.0");
     for (InsuredPerson insuredPerson : policyCreationRequest.getInsuredPersons()) {
       Person storedPerson = personService.storePersonEntry(insuredPerson);
+      log.debug(
+          "Created  person details for [{}] with id [{}]",
+          insuredPerson.getFirstName(),
+          storedPerson.getPersonId());
       insuredPerson.setId(storedPerson.getPersonId());
       totalPremium = totalPremium.add(insuredPerson.getPremium());
       policyMappingService.storePolicyMapping(
           createdPolicy.getPolicyId(), insuredPerson, createdPolicy.getStartDate());
+      log.debug(
+          "Created policy mapping for policy [{}] person [{}]",
+          createdPolicy.getPolicyId(),
+          storedPerson.getPersonId());
     }
     return PolicyCreationResponse.builder()
         .insuredPersons(policyCreationRequest.getInsuredPersons())
@@ -144,6 +163,10 @@ public class PolicyFacade {
     for (PolicyMapping policyMapping : policyMappings) {
       Person person = personService.getPerson(policyMapping.getPersonId());
       if (person != null) {
+        log.debug(
+            "Found mapping person [{}] for policy [{}]",
+            policyMapping.getPersonId(),
+            policyMapping.getPolicyId());
         insuredPersons.add(getInsuredPerson(policyMapping, person));
         totalPremium = totalPremium.add(policyMapping.getPremium());
       }
