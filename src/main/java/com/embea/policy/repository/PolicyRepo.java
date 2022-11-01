@@ -10,6 +10,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface PolicyRepo extends CrudRepository<Policy, String> {
 
-  @Query("select a from Policy as a where policyId = :policyId and effectiveDate <= :effectiveDate")
+  @Query("select a from Policy as a where policyId = :policyId and startDate <= :effectiveDate")
   Optional<Policy> getPolicyByPolicyIdAndEffectiveDateBefore(String policyId, Date effectiveDate);
 }

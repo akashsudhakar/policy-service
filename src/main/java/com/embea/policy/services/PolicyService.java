@@ -36,6 +36,6 @@ public class PolicyService {
   }
 
   private Policy buildPolicyObject(PolicyCreationRequest policyCreationRequest) {
-    return Policy.builder().effectiveDate(policyCreationRequest.getStartDate()).build();
+    return Policy.builder().startDate(policyCreationRequest.getStartDate()).build();
   }
 }

@@ -96,7 +96,7 @@ Available REST APIs
 
     ```
     {
-        "policyId"       : "Modified Policy ID",
+        "policyId"       : "Fetched Policy ID",
         "requestDate"    : "Request date passed in request in the format dd.MM.yyyy, else current date",
         "insuredPersons" : "List of InsuredPerson part of policy, Structure provided below",
         "totalPremium"   : "Sum of all premium amounts"
@@ -167,20 +167,23 @@ Console is enabled by default. To view data, please navigate to [H2-console](htt
 This project stores data in 3 different tables.
 ```
 POLICY
-    policy_id STRING
-    total_premium DOUBLE
+    id CHARACTER
+    start_date TIMESTAMP
 ```
 ```
 PERSON
-    person_id LONG
-    first_name STRING
-    last_name STRING
+    id LONG
+    first_name CHARACTER
+    last_name CHARACTER
 ```
 ```
 POLICY_MAPPING
-    id LONG
-    policy_id STRING
-    person_id LONG
+    id BIGINT
+    policy_id CHARACTER
+    person_id BIGINT
+    premium NUMERIC
+    addition_date TIMESTAMP
+    removal_date TIMESTAMP
 ```
 
 ## Documentation

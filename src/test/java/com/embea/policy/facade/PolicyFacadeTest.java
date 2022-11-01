@@ -72,7 +72,7 @@ class PolicyFacadeTest {
           + "And person objects with their newly generated ids.")
   void createPolicySuccessScenario() {
     PolicyCreationRequest policyCreationRequest = buildPolicyCreationRequest();
-    Policy createdPolicy = Policy.builder().policyId(POLICY_ID).effectiveDate(START_DATE).build();
+    Policy createdPolicy = Policy.builder().policyId(POLICY_ID).startDate(START_DATE).build();
     doReturn(createdPolicy).when(policyService).insertPolicy(policyCreationRequest);
     long id = 1L;
     for (InsuredPerson insuredPerson : policyCreationRequest.getInsuredPersons()) {
@@ -86,7 +86,7 @@ class PolicyFacadeTest {
       lenient()
           .doReturn(mockPolicyMapping)
           .when(policyMappingService)
-          .storePolicyMapping(any(Policy.class), any(InsuredPerson.class));
+          .storePolicyMapping(anyString(), any(InsuredPerson.class), any(Date.class));
     }
     doReturn(mockPolicy).when(policyService).savePolicy(any(Policy.class));
 
@@ -112,77 +112,21 @@ class PolicyFacadeTest {
     verify(policyService).insertPolicy(policyCreationRequest);
     verify(personService, never()).storePersonEntry(any(InsuredPerson.class));
     verify(policyMappingService, never())
-        .storePolicyMapping(any(Policy.class), any(InsuredPerson.class));
+        .storePolicyMapping(anyString(), any(InsuredPerson.class), any(Date.class));
   }
 
   @Test
   @DisplayName(
-      "Given modify policy request with valid policy Id and same effective date "
+      "Given modify policy request with valid policy Id and future effective date "
           + "And one person added and one person removed "
           + "When we try to modify policy "
-          + "Then policy details returned with correct person details.")
-  void modifyPolicySuccessScenarioWithSameDate() {
-    PolicyModificationRequest policyModificationRequest = createPolicyModificationRequest();
-
-    Policy createdPolicy = Policy.builder().policyId(POLICY_ID).effectiveDate(START_DATE).build();
-    doReturn(createdPolicy).when(policyService).getPolicy(POLICY_ID);
-
-    InsuredPerson personToNewlyAdd =
-        InsuredPerson.builder().firstName(FIRST_NAME_3).secondName(SECOND_NAME_3).build();
-    Person personNewlyAdded =
-        Person.builder()
-            .personId(PERSON_ID_3)
-            .firstName(FIRST_NAME_3)
-            .secondName(SECOND_NAME_3)
-            .build();
-    doReturn(personNewlyAdded).when(personService).storePersonEntry(personToNewlyAdd);
-    doReturn(mockPolicyMapping)
-        .when(policyMappingService)
-        .storePolicyMapping(any(Policy.class), any(InsuredPerson.class));
-
-    PolicyMapping policyMapping1 =
-        PolicyMapping.builder()
-            .id(1L)
-            .policyId(POLICY_ID)
-            .personId(PERSON_ID_1)
-            .premium(PREMIUM_1)
-            .build();
-    PolicyMapping policyMapping2 =
-        PolicyMapping.builder()
-            .id(2L)
-            .policyId(POLICY_ID)
-            .personId(PERSON_ID_2)
-            .premium(PREMIUM_2)
-            .build();
-    PolicyMapping policyMapping3 =
-        PolicyMapping.builder()
-            .id(3L)
-            .policyId(POLICY_ID)
-            .personId(PERSON_ID_3)
-            .premium(PREMIUM_3)
-            .build();
-    List<PolicyMapping> policyMappingList = List.of(policyMapping1, policyMapping2, policyMapping3);
-    doReturn(policyMappingList).when(policyMappingService).findPersonsForPolicy(POLICY_ID);
-
-    doReturn(1L).when(policyMappingService).deletePersonIdsForPolicy(anyList(), anyString());
-
-    PolicyResponse policyResponse = policyFacade.modifyPolicy(policyModificationRequest);
-
-    validatePolicyModificationResponse(policyResponse, false);
-  }
-
-  @Test
-  @DisplayName(
-      "Given modify policy request with valid policy Id and different effective date "
-          + "And one person added and one person removed "
-          + "When we try to modify policy "
-          + "Then policy details returned with correct person details and new effective date.")
-  void modifyPolicySuccessScenarioWithDifferentDate() {
+          + "Then policy details returned with correct person details and future effective date.")
+  void modifyPolicySuccessScenarioWithAdditionAndRemoval() {
     PolicyModificationRequest policyModificationRequest = createPolicyModificationRequest();
     policyModificationRequest.setEffectiveDate(UPDATED_DATE);
 
-    Policy createdPolicy = Policy.builder().policyId(POLICY_ID).effectiveDate(START_DATE).build();
-    doReturn(createdPolicy).when(policyService).getPolicy(POLICY_ID);
+    Policy createdPolicy = Policy.builder().policyId(POLICY_ID).startDate(START_DATE).build();
+    doReturn(createdPolicy).when(policyService).getPolicy(POLICY_ID, UPDATED_DATE);
 
     InsuredPerson personToNewlyAdd =
         InsuredPerson.builder().firstName(FIRST_NAME_3).secondName(SECOND_NAME_3).build();
@@ -195,7 +139,7 @@ class PolicyFacadeTest {
     doReturn(personNewlyAdded).when(personService).storePersonEntry(personToNewlyAdd);
     doReturn(mockPolicyMapping)
         .when(policyMappingService)
-        .storePolicyMapping(any(Policy.class), any(InsuredPerson.class));
+        .storePolicyMapping(anyString(), any(InsuredPerson.class), any(Date.class));
 
     PolicyMapping policyMapping1 =
         PolicyMapping.builder()
@@ -221,11 +165,13 @@ class PolicyFacadeTest {
     List<PolicyMapping> policyMappingList = List.of(policyMapping1, policyMapping2, policyMapping3);
     doReturn(policyMappingList).when(policyMappingService).findPersonsForPolicy(POLICY_ID);
 
-    doReturn(1L).when(policyMappingService).deletePersonIdsForPolicy(anyList(), anyString());
+    doReturn(1)
+        .when(policyMappingService)
+        .removePersonsFromPolicy(anyList(), anyString(), any(Date.class));
 
     PolicyResponse policyResponse = policyFacade.modifyPolicy(policyModificationRequest);
 
-    validatePolicyModificationResponse(policyResponse, true);
+    validatePolicyModificationResponse(policyResponse);
   }
 
   @Test
@@ -237,7 +183,7 @@ class PolicyFacadeTest {
   void modifyPolicyThrowsException() {
     PolicyModificationRequest policyModificationRequest = createPolicyModificationRequest();
 
-    doThrow(IllegalArgumentException.class).when(policyService).getPolicy(POLICY_ID);
+    doThrow(IllegalArgumentException.class).when(policyService).getPolicy(POLICY_ID, START_DATE);
 
     assertThrows(
         IllegalArgumentException.class, () -> policyFacade.modifyPolicy(policyModificationRequest));
@@ -251,7 +197,7 @@ class PolicyFacadeTest {
   void modifyPolicyWithInvalidPolicyId() {
     PolicyModificationRequest policyModificationRequest = createPolicyModificationRequest();
 
-    doReturn(null).when(policyService).getPolicy(POLICY_ID);
+    doReturn(null).when(policyService).getPolicy(POLICY_ID, START_DATE);
 
     assertThrows(
         PolicyNotFoundException.class, () -> policyFacade.modifyPolicy(policyModificationRequest));
@@ -264,7 +210,7 @@ class PolicyFacadeTest {
           + "Then policy details returned.")
   void testFetchPolicySuccessScenario() {
     PolicyFetchRequest policyFetchRequest = createPolicyFetchRequest();
-    Policy fetchedPolicy = Policy.builder().policyId(POLICY_ID).effectiveDate(START_DATE).build();
+    Policy fetchedPolicy = Policy.builder().policyId(POLICY_ID).startDate(START_DATE).build();
     doReturn(fetchedPolicy).when(policyService).getPolicy(POLICY_ID, START_DATE);
 
     PolicyMapping policyMapping1 =
@@ -282,7 +228,9 @@ class PolicyFacadeTest {
             .premium(PREMIUM_2)
             .build();
     List<PolicyMapping> policyMappingList = List.of(policyMapping1, policyMapping2);
-    doReturn(policyMappingList).when(policyMappingService).findPersonsForPolicy(POLICY_ID);
+    doReturn(policyMappingList)
+        .when(policyMappingService)
+        .findPersonsForPolicyAndRequestDate(POLICY_ID, START_DATE);
 
     Person person1 =
         Person.builder()
@@ -312,7 +260,7 @@ class PolicyFacadeTest {
   void testFetchPolicySuccessScenarioWithNoRequestDate() {
     PolicyFetchRequest policyFetchRequest = createPolicyFetchRequest();
     policyFetchRequest.setRequestDate(null);
-    Policy fetchedPolicy = Policy.builder().policyId(POLICY_ID).effectiveDate(CURRENT_DATE).build();
+    Policy fetchedPolicy = Policy.builder().policyId(POLICY_ID).startDate(CURRENT_DATE).build();
     doReturn(fetchedPolicy).when(policyService).getPolicy(eq(POLICY_ID), any(Date.class));
 
     PolicyMapping policyMapping1 =
@@ -330,7 +278,9 @@ class PolicyFacadeTest {
             .premium(PREMIUM_2)
             .build();
     List<PolicyMapping> policyMappingList = List.of(policyMapping1, policyMapping2);
-    doReturn(policyMappingList).when(policyMappingService).findPersonsForPolicy(POLICY_ID);
+    doReturn(policyMappingList)
+        .when(policyMappingService)
+        .findPersonsForPolicyAndRequestDate(eq(POLICY_ID), any(Date.class));
 
     Person person1 =
         Person.builder()
@@ -454,23 +404,17 @@ class PolicyFacadeTest {
     verify(policyService).insertPolicy(policyCreationRequest);
     verify(personService, times(2)).storePersonEntry(any(InsuredPerson.class));
     verify(policyMappingService, times(2))
-        .storePolicyMapping(any(Policy.class), any(InsuredPerson.class));
+        .storePolicyMapping(anyString(), any(InsuredPerson.class), any(Date.class));
   }
 
-  private void validatePolicyModificationResponse(
-      PolicyResponse policyResponse, boolean dateModified) {
+  private void validatePolicyModificationResponse(PolicyResponse policyResponse) {
     assertNotNull(policyResponse);
     assertTrue(policyResponse instanceof PolicyModificationResponse);
     PolicyModificationResponse policyModificationResponse =
         (PolicyModificationResponse) policyResponse;
     assertEquals(UPDATED_TOTAL_PREMIUM, policyModificationResponse.getTotalPremium());
     assertEquals(POLICY_ID, policyModificationResponse.getPolicyId());
-    Instant instant1;
-    if (dateModified) {
-      instant1 = UPDATED_DATE.toInstant().truncatedTo(ChronoUnit.DAYS);
-    } else {
-      instant1 = START_DATE.toInstant().truncatedTo(ChronoUnit.DAYS);
-    }
+    Instant instant1 = UPDATED_DATE.toInstant().truncatedTo(ChronoUnit.DAYS);
     Instant instant2 =
         policyModificationResponse.getEffectiveDate().toInstant().truncatedTo(ChronoUnit.DAYS);
     assertEquals(instant1, instant2);
@@ -493,20 +437,14 @@ class PolicyFacadeTest {
     for (InsuredPerson insuredPerson : policyModificationResponse.getInsuredPersons()) {
       assertTrue(insuredPersonSet.contains(insuredPerson));
     }
-    verify(policyService).getPolicy(POLICY_ID);
-    if (dateModified) {
-      verify(policyService).savePolicy(policyArgumentCaptor.capture());
-      Policy captorValue = policyArgumentCaptor.getValue();
-      assertEquals(UPDATED_DATE, captorValue.getEffectiveDate());
-    } else {
-      verify(policyService, never()).savePolicy(any(Policy.class));
-    }
+    verify(policyService).getPolicy(POLICY_ID, UPDATED_DATE);
     verify(personService).storePersonEntry(insuredPersonCaptor.capture());
-    InsuredPerson captorValue = insuredPersonCaptor.getValue();
-    assertEquals(PERSON_ID_3, captorValue.getId());
-    verify(policyMappingService).storePolicyMapping(any(Policy.class), any(InsuredPerson.class));
+    InsuredPerson personCaptorValue = insuredPersonCaptor.getValue();
+    assertEquals(PERSON_ID_3, personCaptorValue.getId());
+    verify(policyMappingService)
+        .storePolicyMapping(anyString(), any(InsuredPerson.class), any(Date.class));
     verify(policyMappingService).findPersonsForPolicy(POLICY_ID);
-    verify(policyMappingService).deletePersonIdsForPolicy(anyList(), anyString());
+    verify(policyMappingService).removePersonsFromPolicy(anyList(), anyString(), any(Date.class));
   }
 
   private void validatePolicyFetchResponse(PolicyResponse policyResponse, Date effectiveDate) {
