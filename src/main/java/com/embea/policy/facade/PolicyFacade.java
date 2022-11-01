@@ -31,6 +31,7 @@ public class PolicyFacade {
    * @param policyCreationRequest Policy creation request with start date and insured persons
    * @return Policy creation response with created policy id and insured person ids
    */
+  @Transactional
   public PolicyResponse createPolicy(PolicyCreationRequest policyCreationRequest) {
     log.info(
         String.format(
