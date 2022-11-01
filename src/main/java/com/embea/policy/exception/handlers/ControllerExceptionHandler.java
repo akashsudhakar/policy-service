@@ -34,6 +34,13 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
     return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
   }
 
+  /**
+   * Exception handler for PolicyNotFoundException
+   *
+   * @param ex Exception thrown
+   * @param request WebRequest
+   * @return Error response in the required format
+   */
   @ResponseBody
   @ExceptionHandler(PolicyNotFoundException.class)
   public ResponseEntity<ErrorResponse> handleMessagePublishFailedException(

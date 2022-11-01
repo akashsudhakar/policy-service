@@ -15,20 +15,45 @@ public class PolicyService {
 
   private final PolicyRepo policyRepo;
 
+  /**
+   * Insert new policy to database
+   *
+   * @param policyCreationRequest Policy creation request with insured persons and start date
+   * @return Newly created policy object
+   */
   public Policy insertPolicy(PolicyCreationRequest policyCreationRequest) {
     Policy createdPolicy = policyRepo.save(buildPolicyObject(policyCreationRequest));
     log.debug("Policy created with policy Id {}", createdPolicy.getPolicyId());
     return createdPolicy;
   }
 
+  /**
+   * Update policy with latest information
+   *
+   * @param policy Policy Object
+   * @return Updated policy object
+   */
   public Policy savePolicy(Policy policy) {
     return policyRepo.save(policy);
   }
 
+  /**
+   * Fetch policy using policy id
+   *
+   * @param policyId Policy Id
+   * @return Fetched policy object
+   */
   public Policy getPolicy(String policyId) {
     return policyRepo.findById(policyId).orElse(null);
   }
 
+  /**
+   * Fetch policy using policy id and effective date
+   *
+   * @param policyId Policy Id
+   * @param effectiveDate Effective date
+   * @return Fetched policy object
+   */
   public Policy getPolicy(String policyId, Date effectiveDate) {
     return policyRepo
         .getPolicyByPolicyIdAndEffectiveDateBefore(policyId, effectiveDate)
