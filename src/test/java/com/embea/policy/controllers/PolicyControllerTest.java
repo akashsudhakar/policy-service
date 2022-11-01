@@ -7,9 +7,9 @@ import static org.mockito.Mockito.verify;
 import com.embea.policy.facade.PolicyFacade;
 import com.embea.policy.model.*;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -104,7 +104,7 @@ class PolicyControllerTest {
   private PolicyCreationRequest buildPolicyCreationRequest() {
     return PolicyCreationRequest.builder()
         .startDate(START_DATE)
-        .insuredPersons(getInsuredPersonSet(false, false))
+        .insuredPersons(getInsuredPersonList(false, false))
         .build();
   }
 
@@ -112,7 +112,7 @@ class PolicyControllerTest {
     return PolicyCreationResponse.builder()
         .policyId(POLICY_ID)
         .totalPremium(TOTAL_PREMIUM)
-        .insuredPersons(getInsuredPersonSet(true, false))
+        .insuredPersons(getInsuredPersonList(true, false))
         .startDate(START_DATE)
         .build();
   }
@@ -120,7 +120,7 @@ class PolicyControllerTest {
   private PolicyModificationRequest createPolicyModificationRequest() {
     return PolicyModificationRequest.builder()
         .policyId(POLICY_ID)
-        .insuredPersons(getInsuredPersonSet(true, true))
+        .insuredPersons(getInsuredPersonList(true, true))
         .effectiveDate(EFFECTIVE_DATE)
         .build();
   }
@@ -129,7 +129,7 @@ class PolicyControllerTest {
     return PolicyModificationResponse.builder()
         .policyId(POLICY_ID)
         .effectiveDate(START_DATE)
-        .insuredPersons(getInsuredPersonSet(true, true))
+        .insuredPersons(getInsuredPersonList(true, true))
         .totalPremium(UPDATED_TOTAL_PREMIUM)
         .build();
   }
@@ -141,13 +141,13 @@ class PolicyControllerTest {
   private PolicyFetchResponse createPolicyFetchResponse() {
     return PolicyFetchResponse.builder()
         .policyId(POLICY_ID)
-        .insuredPersons(getInsuredPersonSet(true, false))
+        .insuredPersons(getInsuredPersonList(true, false))
         .requestDate(START_DATE)
         .totalPremium(TOTAL_PREMIUM)
         .build();
   }
 
-  private Set<InsuredPerson> getInsuredPersonSet(boolean setIds, boolean isModify) {
+  private List<InsuredPerson> getInsuredPersonList(boolean setIds, boolean isModify) {
     InsuredPerson insuredPerson1 =
         InsuredPerson.builder()
             .firstName(FIRST_NAME_1)
@@ -164,7 +164,7 @@ class PolicyControllerTest {
       insuredPerson1.setId(PERSON_ID_1);
       insuredPerson2.setId(PERSON_ID_2);
     }
-    Set<InsuredPerson> insuredPersonList = new HashSet<>();
+    List<InsuredPerson> insuredPersonList = new ArrayList<>();
     insuredPersonList.add(insuredPerson1);
     insuredPersonList.add(insuredPerson2);
     if (isModify) {

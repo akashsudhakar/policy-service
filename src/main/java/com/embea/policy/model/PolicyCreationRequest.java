@@ -3,7 +3,7 @@ package com.embea.policy.model;
 import com.embea.policy.utils.Constants;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import java.util.Date;
-import java.util.Set;
+import java.util.List;
 import javax.validation.Valid;
 import javax.validation.constraints.FutureOrPresent;
 import javax.validation.constraints.NotEmpty;
@@ -22,5 +22,5 @@ public class PolicyCreationRequest {
 
   @Valid
   @NotEmpty(message = "Atleast 1 person should be present")
-  private Set<InsuredPerson> insuredPersons;
+  private List<InsuredPerson> insuredPersons;
 }
