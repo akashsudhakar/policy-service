@@ -51,7 +51,7 @@ public class PolicyFacade {
               "No policy found with id - %s on effective date %s",
               policyModificationRequest.getPolicyId(), effectiveDate));
     } else {
-      Set<InsuredPerson> insuredPersons = new LinkedHashSet<>();
+      List<InsuredPerson> insuredPersons = new ArrayList<>();
       List<Long> idsPresent = new ArrayList<>();
       BigDecimal totalPremium = new BigDecimal("0.0");
       for (InsuredPerson insuredPerson : policyModificationRequest.getInsuredPersons()) {
@@ -92,7 +92,7 @@ public class PolicyFacade {
       List<PolicyMapping> policyMappings =
           policyMappingService.findPersonsForPolicyAndRequestDate(
               fetchedPolicy.getPolicyId(), requestDate);
-      Set<InsuredPerson> insuredPersons = new LinkedHashSet<>();
+      List<InsuredPerson> insuredPersons = new ArrayList<>();
       BigDecimal totalPremium = populatePersonDetails(policyMappings, insuredPersons);
       return buildPolicyFetchResponse(fetchedPolicy, insuredPersons, totalPremium, requestDate);
     }
@@ -115,27 +115,30 @@ public class PolicyFacade {
   }
 
   private BigDecimal populatePersonDetails(
-      List<PolicyMapping> policyMappings, Set<InsuredPerson> insuredPersons) {
+      List<PolicyMapping> policyMappings, List<InsuredPerson> insuredPersons) {
     BigDecimal totalPremium = new BigDecimal("0.0");
     for (PolicyMapping policyMapping : policyMappings) {
       Person person = personService.getPerson(policyMapping.getPersonId());
       if (person != null) {
-        insuredPersons.add(
-            InsuredPerson.builder()
-                .id(person.getPersonId())
-                .firstName(person.getFirstName())
-                .secondName(person.getSecondName())
-                .premium(policyMapping.getPremium())
-                .build());
+        insuredPersons.add(getInsuredPerson(policyMapping, person));
         totalPremium = totalPremium.add(policyMapping.getPremium());
       }
     }
     return totalPremium;
   }
 
+  private InsuredPerson getInsuredPerson(PolicyMapping policyMapping, Person person) {
+    return InsuredPerson.builder()
+        .id(person.getPersonId())
+        .firstName(person.getFirstName())
+        .secondName(person.getSecondName())
+        .premium(policyMapping.getPremium())
+        .build();
+  }
+
   private PolicyModificationResponse buildPolicyModificationResponse(
       PolicyModificationRequest policyModificationRequest,
-      Set<InsuredPerson> insuredPersons,
+      List<InsuredPerson> insuredPersons,
       BigDecimal totalPremium) {
     return PolicyModificationResponse.builder()
         .policyId(policyModificationRequest.getPolicyId())
@@ -147,7 +150,7 @@ public class PolicyFacade {
 
   private PolicyFetchResponse buildPolicyFetchResponse(
       Policy fetchedPolicy,
-      Set<InsuredPerson> insuredPersons,
+      List<InsuredPerson> insuredPersons,
       BigDecimal totalPremium,
       Date requestDate) {
     return PolicyFetchResponse.builder()

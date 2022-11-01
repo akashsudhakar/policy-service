@@ -334,14 +334,14 @@ class PolicyFacadeTest {
   private PolicyCreationRequest buildPolicyCreationRequest() {
     return PolicyCreationRequest.builder()
         .startDate(START_DATE)
-        .insuredPersons(getInsuredPersonSet(false, false))
+        .insuredPersons(getInsuredPersonList(false, false))
         .build();
   }
 
   private PolicyModificationRequest createPolicyModificationRequest() {
     return PolicyModificationRequest.builder()
         .policyId(POLICY_ID)
-        .insuredPersons(getInsuredPersonSet(true, true))
+        .insuredPersons(getInsuredPersonList(true, true))
         .effectiveDate(START_DATE)
         .build();
   }
@@ -350,8 +350,8 @@ class PolicyFacadeTest {
     return PolicyFetchRequest.builder().policyId(POLICY_ID).requestDate(START_DATE).build();
   }
 
-  private Set<InsuredPerson> getInsuredPersonSet(boolean setIds, boolean isModify) {
-    Set<InsuredPerson> insuredPersonList = new HashSet<>();
+  private List<InsuredPerson> getInsuredPersonList(boolean setIds, boolean isModify) {
+    List<InsuredPerson> insuredPersonList = new ArrayList<>();
     InsuredPerson insuredPerson1 =
         InsuredPerson.builder()
             .firstName(FIRST_NAME_1)

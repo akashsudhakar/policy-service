@@ -144,11 +144,11 @@ class PolicyServiceTest {
   private PolicyCreationRequest buildPolicyCreationRequest() {
     return PolicyCreationRequest.builder()
         .startDate(START_DATE)
-        .insuredPersons(getInsuredPersonSet())
+        .insuredPersons(getInsuredPersonList())
         .build();
   }
 
-  private Set<InsuredPerson> getInsuredPersonSet() {
+  private List<InsuredPerson> getInsuredPersonList() {
     InsuredPerson insuredPerson1 =
         InsuredPerson.builder()
             .firstName(FIRST_NAME_1)
@@ -161,7 +161,7 @@ class PolicyServiceTest {
             .secondName(SECOND_NAME_2)
             .premium(PREMIUM_2)
             .build();
-    Set<InsuredPerson> insuredPersonList = new HashSet<>();
+    List<InsuredPerson> insuredPersonList = new ArrayList<>();
     insuredPersonList.add(insuredPerson1);
     insuredPersonList.add(insuredPerson2);
     return insuredPersonList;

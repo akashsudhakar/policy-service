@@ -6,7 +6,6 @@ import java.math.BigDecimal;
 import java.util.Date;
 import javax.persistence.*;
 import javax.validation.constraints.Digits;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -32,7 +31,7 @@ public class PolicyMapping {
   private Long personId;
 
   @Column(name = "premium")
-  @Digits(integer=10, fraction=2)
+  @Digits(integer = 10, fraction = 2)
   private BigDecimal premium;
 
   @Column(name = "addition_date")
