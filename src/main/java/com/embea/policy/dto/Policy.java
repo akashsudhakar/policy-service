@@ -2,7 +2,6 @@ package com.embea.policy.dto;
 
 import com.embea.policy.utils.Constants;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import java.math.BigDecimal;
 import java.util.Date;
 import javax.persistence.*;
 import lombok.AllArgsConstructor;
@@ -18,16 +17,14 @@ import org.hibernate.annotations.GenericGenerator;
 @Entity
 @Table(name = "policy")
 public class Policy {
+
   @Id
   @GeneratedValue(generator = "uuid")
   @GenericGenerator(name = "uuid", strategy = "uuid2")
   @Column(name = "id", updatable = false, nullable = false)
   private String policyId;
 
-  @Column(name = "effective_date")
+  @Column(name = "start_date")
   @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = Constants.DATE_FORMAT)
-  private Date effectiveDate;
-
-  @Column(name = "total_premium")
-  private BigDecimal totalPremium;
+  private Date startDate;
 }

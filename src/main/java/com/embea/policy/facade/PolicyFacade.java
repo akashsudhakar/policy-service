@@ -32,35 +32,33 @@ public class PolicyFacade {
     Policy createdPolicy = policyService.insertPolicy(policyCreationRequest);
     PolicyCreationResponse policyResponse =
         insertPersonAndMapping(policyCreationRequest, createdPolicy);
-    createdPolicy.setTotalPremium(policyResponse.getTotalPremium());
     policyService.savePolicy(createdPolicy);
 
     return policyResponse.toBuilder()
         .policyId(createdPolicy.getPolicyId())
-        .startDate(createdPolicy.getEffectiveDate())
+        .startDate(createdPolicy.getStartDate())
         .build();
   }
 
   @Transactional
   public PolicyResponse modifyPolicy(PolicyModificationRequest policyModificationRequest) {
     String policyId = policyModificationRequest.getPolicyId();
-    Policy savedPolicy = policyService.getPolicy(policyId);
+    Date effectiveDate = policyModificationRequest.getEffectiveDate();
+    Policy savedPolicy = policyService.getPolicy(policyId, effectiveDate);
     if (savedPolicy == null) {
       throw new PolicyNotFoundException(
-          String.format("No policy found with id - %s", policyModificationRequest.getPolicyId()));
+          String.format(
+              "No policy found with id - %s on effective date %s",
+              policyModificationRequest.getPolicyId(), effectiveDate));
     } else {
-      if (!policyModificationRequest.getEffectiveDate().equals(savedPolicy.getEffectiveDate())) {
-        savedPolicy.setEffectiveDate(policyModificationRequest.getEffectiveDate());
-        policyService.savePolicy(savedPolicy);
-      }
-      Set<InsuredPerson> insuredPersons = new TreeSet<>();
+      Set<InsuredPerson> insuredPersons = new LinkedHashSet<>();
       List<Long> idsPresent = new ArrayList<>();
       BigDecimal totalPremium = new BigDecimal("0.0");
       for (InsuredPerson insuredPerson : policyModificationRequest.getInsuredPersons()) {
         if (insuredPerson.getId() == null) {
           Person storePersonEntry = personService.storePersonEntry(insuredPerson);
           insuredPerson.setId(storePersonEntry.getPersonId());
-          policyMappingService.storePolicyMapping(savedPolicy, insuredPerson);
+          policyMappingService.storePolicyMapping(policyId, insuredPerson, effectiveDate);
         }
         insuredPersons.add(insuredPerson);
         idsPresent.add(insuredPerson.getId());
@@ -73,7 +71,7 @@ public class PolicyFacade {
           idsToRemove.add(policyMapping.getPersonId());
         }
       }
-      policyMappingService.deletePersonIdsForPolicy(idsToRemove, policyId);
+      policyMappingService.removePersonsFromPolicy(idsToRemove, policyId, effectiveDate);
       return buildPolicyModificationResponse(
           policyModificationRequest, insuredPersons, totalPremium);
     }
@@ -92,8 +90,9 @@ public class PolicyFacade {
               policyFetchRequest.getPolicyId(), requestDate));
     } else {
       List<PolicyMapping> policyMappings =
-          policyMappingService.findPersonsForPolicy(fetchedPolicy.getPolicyId());
-      Set<InsuredPerson> insuredPersons = new TreeSet<>();
+          policyMappingService.findPersonsForPolicyAndRequestDate(
+              fetchedPolicy.getPolicyId(), requestDate);
+      Set<InsuredPerson> insuredPersons = new LinkedHashSet<>();
       BigDecimal totalPremium = populatePersonDetails(policyMappings, insuredPersons);
       return buildPolicyFetchResponse(fetchedPolicy, insuredPersons, totalPremium, requestDate);
     }
@@ -106,7 +105,8 @@ public class PolicyFacade {
       Person storedPerson = personService.storePersonEntry(insuredPerson);
       insuredPerson.setId(storedPerson.getPersonId());
       totalPremium = totalPremium.add(insuredPerson.getPremium());
-      policyMappingService.storePolicyMapping(createdPolicy, insuredPerson);
+      policyMappingService.storePolicyMapping(
+          createdPolicy.getPolicyId(), insuredPerson, createdPolicy.getStartDate());
     }
     return PolicyCreationResponse.builder()
         .insuredPersons(policyCreationRequest.getInsuredPersons())

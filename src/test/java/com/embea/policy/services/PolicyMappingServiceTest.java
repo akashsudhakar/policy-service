@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-import com.embea.policy.dto.Policy;
 import com.embea.policy.dto.PolicyMapping;
 import com.embea.policy.model.InsuredPerson;
 import com.embea.policy.repository.PolicyMappingRepo;
@@ -29,8 +28,6 @@ class PolicyMappingServiceTest {
   private static final String FIRST_NAME_1 = "Jane";
   private static final String SECOND_NAME_1 = "Jackson";
   private static final BigDecimal PREMIUM_1 = BigDecimal.valueOf(12.90);
-  private static final BigDecimal PREMIUM_2 = BigDecimal.valueOf(15.90);
-  private static final BigDecimal TOTAL_PREMIUM = BigDecimal.valueOf(28.80);
   private static final String POLICY_ID = UUID.randomUUID().toString();
   private static final String INVALID_POLICY_ID = UUID.randomUUID().toString();
   private static final Long PERSON_ID_1 = 1L;
@@ -52,11 +49,11 @@ class PolicyMappingServiceTest {
           + "When we try to insert policy mapping into database "
           + "Then it returns inserted policy mapping object.")
   void testStorePolicyMappingWithValidValues() {
-    Policy policy = createPolicy();
     InsuredPerson insuredPerson = createInsuredPerson();
     doReturn(mockPolicyMapping).when(policyMappingRepo).save(any(PolicyMapping.class));
 
-    PolicyMapping policyMapping = policyMappingService.storePolicyMapping(policy, insuredPerson);
+    PolicyMapping policyMapping =
+        policyMappingService.storePolicyMapping(POLICY_ID, insuredPerson, START_DATE);
     assertEquals(mockPolicyMapping, policyMapping);
     verify(policyMappingRepo).save(policyMappingCaptor.capture());
     PolicyMapping captorValue = policyMappingCaptor.getValue();
@@ -69,13 +66,12 @@ class PolicyMappingServiceTest {
           + "When we try to insert policy mapping into database "
           + "Then throws IllegalArgumentException back to the caller.")
   void testStorePolicyMappingWithInvalidValues() {
-    Policy policy = createPolicy();
     InsuredPerson insuredPerson = createInsuredPerson();
     doThrow(IllegalArgumentException.class).when(policyMappingRepo).save(any(PolicyMapping.class));
 
     assertThrows(
         IllegalArgumentException.class,
-        () -> policyMappingService.storePolicyMapping(policy, insuredPerson));
+        () -> policyMappingService.storePolicyMapping(POLICY_ID, insuredPerson, START_DATE));
     verify(policyMappingRepo).save(policyMappingCaptor.capture());
     PolicyMapping captorValue = policyMappingCaptor.getValue();
     validatePolicyMapping(captorValue);
@@ -123,12 +119,15 @@ class PolicyMappingServiceTest {
           + "When we try to delete mapping between policy and person "
           + "Then it returns count of deleted entries.")
   void testDeletePersonIdsForPolicyWithMultiplePersonIds() {
-    doReturn(1L).when(policyMappingRepo).deleteByPersonIdAndPolicyId(PERSON_ID_1, POLICY_ID);
-    doReturn(1L).when(policyMappingRepo).deleteByPersonIdAndPolicyId(PERSON_ID_2, POLICY_ID);
+    List<Long> personIds = List.of(PERSON_ID_1, PERSON_ID_2);
+    doReturn(2)
+        .when(policyMappingRepo)
+        .setRemovalDateByPolicyIdAndPersonIds(personIds, POLICY_ID, START_DATE);
 
     long deletedCount =
-        policyMappingService.deletePersonIdsForPolicy(List.of(PERSON_ID_1, PERSON_ID_2), POLICY_ID);
-    assertEquals(2L, deletedCount);
+        policyMappingService.removePersonsFromPolicy(personIds, POLICY_ID, START_DATE);
+
+    assertEquals(2, deletedCount);
   }
 
   @Test
@@ -138,12 +137,15 @@ class PolicyMappingServiceTest {
           + "When we try to delete mapping between policy and person "
           + "Then it returns count of only deleted entries.")
   void testDeletePersonIdsForPolicyWithOnePersonIdNotPresent() {
-    doReturn(1L).when(policyMappingRepo).deleteByPersonIdAndPolicyId(PERSON_ID_1, POLICY_ID);
-    doReturn(0L).when(policyMappingRepo).deleteByPersonIdAndPolicyId(PERSON_ID_2, POLICY_ID);
+    List<Long> personIds = List.of(PERSON_ID_1, PERSON_ID_2);
+    doReturn(1)
+        .when(policyMappingRepo)
+        .setRemovalDateByPolicyIdAndPersonIds(personIds, POLICY_ID, START_DATE);
 
     long deletedCount =
-        policyMappingService.deletePersonIdsForPolicy(List.of(PERSON_ID_1, PERSON_ID_2), POLICY_ID);
-    assertEquals(1L, deletedCount);
+        policyMappingService.removePersonsFromPolicy(
+            List.of(PERSON_ID_1, PERSON_ID_2), POLICY_ID, START_DATE);
+    assertEquals(1, deletedCount);
   }
 
   @Test
@@ -153,23 +155,14 @@ class PolicyMappingServiceTest {
           + "And API throws exception "
           + "Then exception thrown back to the caller.")
   void testDeletePersonIdsForPolicyThrowsException() {
+    List<Long> personIds = List.of(PERSON_ID_1, PERSON_ID_2);
     doThrow(IllegalArgumentException.class)
         .when(policyMappingRepo)
-        .deleteByPersonIdAndPolicyId(PERSON_ID_1, POLICY_ID);
+        .setRemovalDateByPolicyIdAndPersonIds(personIds, POLICY_ID, START_DATE);
 
     assertThrows(
         IllegalArgumentException.class,
-        () ->
-            policyMappingService.deletePersonIdsForPolicy(
-                List.of(PERSON_ID_1, PERSON_ID_2), POLICY_ID));
-  }
-
-  private Policy createPolicy() {
-    return Policy.builder()
-        .policyId(POLICY_ID)
-        .effectiveDate(START_DATE)
-        .totalPremium(TOTAL_PREMIUM)
-        .build();
+        () -> policyMappingService.removePersonsFromPolicy(personIds, POLICY_ID, START_DATE));
   }
 
   private InsuredPerson createInsuredPerson() {

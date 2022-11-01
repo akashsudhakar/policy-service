@@ -1,9 +1,9 @@
 package com.embea.policy.services;
 
-import com.embea.policy.dto.Policy;
 import com.embea.policy.dto.PolicyMapping;
 import com.embea.policy.model.InsuredPerson;
 import com.embea.policy.repository.PolicyMappingRepo;
+import java.util.Date;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -16,9 +16,10 @@ public class PolicyMappingService {
 
   private final PolicyMappingRepo policyMappingRepo;
 
-  public PolicyMapping storePolicyMapping(Policy policy, InsuredPerson insuredPerson) {
+  public PolicyMapping storePolicyMapping(
+      String policyId, InsuredPerson insuredPerson, Date additionDate) {
     PolicyMapping insertedPolicyMapping =
-        policyMappingRepo.save(createPolicyMapping(policy, insuredPerson));
+        policyMappingRepo.save(createPolicyMapping(policyId, insuredPerson, additionDate));
     log.debug("PolicyMapping created with Id {}", insertedPolicyMapping.getId());
     return insertedPolicyMapping;
   }
@@ -27,19 +28,23 @@ public class PolicyMappingService {
     return policyMappingRepo.findByPolicyId(policyId);
   }
 
-  public Long deletePersonIdsForPolicy(List<Long> personIds, String policyId) {
-    long deletedCount = 0;
-    for (Long personId : personIds) {
-      deletedCount += policyMappingRepo.deleteByPersonIdAndPolicyId(personId, policyId);
-    }
-    return deletedCount;
+  public List<PolicyMapping> findPersonsForPolicyAndRequestDate(String policyId, Date requestDate) {
+    return policyMappingRepo.findByPolicyIdAndRequestDate(policyId, requestDate);
   }
 
-  private PolicyMapping createPolicyMapping(Policy policy, InsuredPerson insuredPerson) {
+  public Integer removePersonsFromPolicy(
+      List<Long> personIds, String policyId, Date effectiveDate) {
+    return policyMappingRepo.setRemovalDateByPolicyIdAndPersonIds(
+        personIds, policyId, effectiveDate);
+  }
+
+  private PolicyMapping createPolicyMapping(
+      String policyId, InsuredPerson insuredPerson, Date additionDate) {
     return PolicyMapping.builder()
-        .policyId(policy.getPolicyId())
+        .policyId(policyId)
         .personId(insuredPerson.getId())
         .premium(insuredPerson.getPremium())
+        .additionDate(additionDate)
         .build();
   }
 }

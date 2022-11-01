@@ -53,7 +53,7 @@ class PolicyServiceTest {
     assertEquals(mockPolicy, insertedPolicy);
     verify(policyRepo).save(policyCaptor.capture());
     Policy policyCaptorValue = policyCaptor.getValue();
-    assertEquals(policyCreationRequest.getStartDate(), policyCaptorValue.getEffectiveDate());
+    assertEquals(policyCreationRequest.getStartDate(), policyCaptorValue.getStartDate());
   }
 
   @Test
@@ -70,7 +70,7 @@ class PolicyServiceTest {
 
     verify(policyRepo).save(policyCaptor.capture());
     Policy policyCaptorValue = policyCaptor.getValue();
-    assertEquals(policyCreationRequest.getStartDate(), policyCaptorValue.getEffectiveDate());
+    assertEquals(policyCreationRequest.getStartDate(), policyCaptorValue.getStartDate());
   }
 
   @Test
