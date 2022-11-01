@@ -16,6 +16,14 @@ public class PolicyMappingService {
 
   private final PolicyMappingRepo policyMappingRepo;
 
+  /**
+   * API to store policy mapping
+   *
+   * @param policyId Policy Id
+   * @param insuredPerson Person to be mapped with policy
+   * @param additionDate Date on which policy is active
+   * @return PolicyMapping Object
+   */
   public PolicyMapping storePolicyMapping(
       String policyId, InsuredPerson insuredPerson, Date additionDate) {
     PolicyMapping insertedPolicyMapping =
@@ -24,14 +32,35 @@ public class PolicyMappingService {
     return insertedPolicyMapping;
   }
 
+  /**
+   * Find all persons related to a policy
+   *
+   * @param policyId Policy Id
+   * @return List of PolicyMapping Object
+   */
   public List<PolicyMapping> findPersonsForPolicy(String policyId) {
     return policyMappingRepo.findByPolicyId(policyId);
   }
 
+  /**
+   * Find all persons related to a policy from request date
+   *
+   * @param policyId Policy Id
+   * @param requestDate Request date
+   * @return List of PolicyMapping Object
+   */
   public List<PolicyMapping> findPersonsForPolicyAndRequestDate(String policyId, Date requestDate) {
     return policyMappingRepo.findByPolicyIdAndRequestDate(policyId, requestDate);
   }
 
+  /**
+   * Remove mapping between person and policy from effective date
+   *
+   * @param personIds Ids of persons to remove
+   * @param policyId Policy Id
+   * @param effectiveDate Effective date
+   * @return Number of persons removed
+   */
   public Integer removePersonsFromPolicy(
       List<Long> personIds, String policyId, Date effectiveDate) {
     return policyMappingRepo.setRemovalDateByPolicyIdAndPersonIds(

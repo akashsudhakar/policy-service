@@ -172,7 +172,7 @@ POLICY
 ```
 ```
 PERSON
-    id LONG
+    id BIGINT
     first_name CHARACTER
     last_name CHARACTER
 ```

@@ -25,6 +25,12 @@ public class PolicyFacade {
   private final PersonService personService;
   private final PolicyMappingService policyMappingService;
 
+  /**
+   * API to create policies.
+   *
+   * @param policyCreationRequest Policy creation request with start date and insured persons
+   * @return Policy creation response with created policy id and insured person ids
+   */
   public PolicyResponse createPolicy(PolicyCreationRequest policyCreationRequest) {
     log.info(
         String.format(
@@ -40,6 +46,15 @@ public class PolicyFacade {
         .build();
   }
 
+  /**
+   * API to modify policies. Throws PolicyNotFoundException if policy is not found for the provided
+   * effective date. If insured person present in request without id, that person will be added. If
+   * any old insured person not part of current request, that person will be removed from policy
+   *
+   * @param policyModificationRequest Policy modification request with to be updated information and
+   *     effective date
+   * @return Policy modification response with effective data
+   */
   @Transactional
   public PolicyResponse modifyPolicy(PolicyModificationRequest policyModificationRequest) {
     String policyId = policyModificationRequest.getPolicyId();
@@ -77,6 +92,14 @@ public class PolicyFacade {
     }
   }
 
+  /**
+   * API to fetch policies as on request date. If no policy found for that policy id and request
+   * date, PolicyNotFoundException is thrown. If no date is passed, then current date is considered
+   * as request date.
+   *
+   * @param policyFetchRequest Policy fetch request with policy Id and optional request date
+   * @return Policy fetch response with policy details as on request date
+   */
   public PolicyResponse fetchPolicy(PolicyFetchRequest policyFetchRequest) {
     Date requestDate =
         policyFetchRequest.getRequestDate() != null
